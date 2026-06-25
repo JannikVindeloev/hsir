@@ -131,7 +131,7 @@ fast_matrix_ops <- function(x, operation = c("mean", "median", "sum", "min", "ma
 #' @examples
 #' \dontrun{
 #' # Assuming sample_cube is an hsi object
-#' dt <- as_dt(sample_cube)
+#' dt_cube <- as_dt(sample_cube)
 #' head(dt)
 #' }
 as_dt <- function(x, ...) {
