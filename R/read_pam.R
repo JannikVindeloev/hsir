@@ -99,11 +99,15 @@ read_pam <- function(file_path, min_wl = 430, thumbnail = TRUE, wl = NULL) {
 #' @return the input array with added `thumbnail` and `thumbnail_wavelength` attributes
 #' @noRd
 .generate_thumbnail <- function(a, wl = NULL) {
-  maxval <- attr(a, 'header')['maxval']
+
+  # subset indexes
+  x_idx <- seq(0, dim(a)[1], by = 4)
+  y_idx <- seq(0, dim(a)[2], by = 4)
+
+  # Default to middle wavelength if not specified
   wl_values <- as.integer(dimnames(a)[[3]])
   depth <- dim(a)[3]
 
-  # Default to middle wavelength if not specified
   if (is.null(wl)) wl <- wl_values[round(depth / 2)]
 
   # Find index for the specified wavelength
@@ -114,20 +118,15 @@ read_pam <- function(file_path, min_wl = 430, thumbnail = TRUE, wl = NULL) {
     wl <- wl_values[wl_idx]
   }
 
-  # Use subset_hsi to extract the specific wavelength slice
-  slice_array <- subset_hsi(a, wl_range = wl_idx)
-  
-  # Extract the 2D slice from the 3D array
-  slice <- slice_array[,, 1, drop = TRUE]
-  
-  # Scale to 0-255 and convert to integer storage mode
-  slice_scaled <- (slice / maxval) * 255
-  storage.mode(slice_scaled) <- 'integer'
+  # Extract the wavelength slice as a matrix and scale to 0-255 (storage mode integer)
+  downsampled <- subset_hsi(a, x_idx, y_idx, wl_idx)
+  maxval <- max(downsampled)
+  minval <- min(downsampled)
+  downsampled <- ((downsampled - minval) / maxval) * 255
+  storage.mode(downsampled) <- 'integer'
 
-  # Downsample by taking every fourth pixel in x and y for better performance
-  x_indices <- seq(1, nrow(slice_scaled), by = 4)
-  y_indices <- seq(1, ncol(slice_scaled), by = 4)
-  downsampled <- slice_scaled[x_indices, y_indices, drop = FALSE]
+  # set attributes on thumbnail
+  downsampled
 
   # Store the downsampled slice directly as the thumbnail
   attr(a, 'thumbnail') <- downsampled
