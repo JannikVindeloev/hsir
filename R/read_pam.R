@@ -298,3 +298,59 @@ plot.hsi <- function(x, ...) {
   
   invisible(x)
 }
+
+#' Convert hsi array to data.table
+#'
+#' @description
+#' Efficiently converts an hsi array to a data.table with x, y, wl, and intensity columns.
+#' This method is optimized for memory efficiency by avoiding unnecessary copies and 
+#' using direct array indexing.
+#'
+#' @param x an hsi array object
+#' @param ... additional arguments (currently unused)
+#' @return A data.table with columns: x (integer), y (integer), wl (integer), intensity (integer)
+#' @export
+#' @method as_dt hsi
+#' @examples
+#' \dontrun{
+#' # Assuming sample_cube is an hsi object
+#' dt <- as_dt(sample_cube)
+#' head(dt)
+#' }
+#' @importFrom data.table data.table setDT
+as_dt.hsi <- function(x, ...) {
+  if (!inherits(x, "hsi")) {
+    stop("Input must be an hsi array object")
+  }
+
+  # Get dimensions
+  x_dim <- dim(x)[1]
+  y_dim <- dim(x)[2]
+  wl_dim <- dim(x)[3]
+  
+  # Pre-allocate vectors for maximum memory efficiency
+  # This avoids growing vectors during the loop
+  total_elements <- x_dim * y_dim * wl_dim
+  
+  # Create index vectors without copying data
+  x_indices <- rep(seq_len(x_dim), each = y_dim * wl_dim)
+  y_indices <- rep(rep(seq_len(y_dim), each = wl_dim), times = x_dim)
+  wl_indices <- rep(seq_len(wl_dim), times = x_dim * y_dim)
+  
+  # Extract intensity values directly from the array (no copy)
+  # Using as.vector which is efficient for arrays
+  intensity_values <- as.vector(x)
+  
+  # Ensure intensity is integer (should already be from read_pam)
+  storage.mode(intensity_values) <- "integer"
+  
+  # Create data.table efficiently
+  dt <- data.table(
+    x = x_indices,
+    y = y_indices,
+    wl = as.integer(wl_indices),
+    intensity = intensity_values
+  )
+  
+  return(dt)
+}
