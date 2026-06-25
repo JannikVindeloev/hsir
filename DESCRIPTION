@@ -6,6 +6,8 @@ Author: Jannik Vindeloev <jannik@example.com>
 Maintainer: Jannik Vindeloev <jannik@example.com>
 Description: Lightweight, fast and memory efficient image recognition utilities.
     Optimized for performance with efficient data structures and algorithms.
+    Includes functions for reading and processing HSI (Hyperspectral Imaging) data
+    in PAM format with optimized binary reading and thumbnail generation.
 Depends: R (>= 3.6.0)
 Imports: 
     data.table,
@@ -16,7 +18,8 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
-    roxygen2 (>= 7.2.3)
+    roxygen2 (>= 7.2.3),
+    graphics
 License: proprietary
 Encoding: UTF-8
 LazyData: true
