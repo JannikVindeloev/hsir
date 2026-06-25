@@ -1,8 +1,8 @@
 #' Subset an hsi array while preserving attributes
 #'
 #' @description
-#' Efficiently subsets an hsi array while preserving all hsi-specific attributes 
-#' (header, thumbnail, thumbnail_wavelength). This function is optimized for 
+#' Efficiently subsets an hsi array while preserving all hsi-specific attributes
+#' (header, thumbnail, thumbnail_wavelength). This function is optimized for
 #' memory efficiency and speed by using direct array indexing without unnecessary copying.
 #'
 #' @param x an hsi array object
@@ -16,10 +16,10 @@
 #' \dontrun{
 #' # Assuming sample_cube is an hsi object
 #' subset_cube <- subset_hsi(sample_cube, x_range = 1:50, y_range = 1:50)
-#' 
+#'
 #' # Subset by wavelength range
 #' subset_cube <- subset_hsi(sample_cube, wl_range = 1:10)
-#' 
+#'
 #' # Check that attributes are preserved
 #' print(subset_cube)
 #' }
@@ -105,136 +105,3 @@ subset_hsi <- function(x, x_range = NULL, y_range = NULL, wl_range = NULL, drop 
   return(subsetted)
 }
 
-#' Subset an hsi array by wavelength range
-#'
-#' @description
-#' Convenience function to subset an hsi array by wavelength range while preserving all attributes.
-#' This is a specialized version of subset_hsi for wavelength-based subsetting.
-#'
-#' @param x an hsi array object
-#' @param wl_min minimum wavelength to include (inclusive)
-#' @param wl_max maximum wavelength to include (inclusive)
-#' @return a subsetted hsi array with preserved attributes
-#' @export
-#' @examples
-#' \dontrun{
-#' # Assuming sample_cube is an hsi object with wavelengths 400-700nm
-#' visible_cube <- subset_by_wavelength(sample_cube, wl_min = 400, wl_max = 700)
-#' }
-#' @seealso subset_hsi
-subset_by_wavelength <- function(x, wl_min, wl_max) {
-  if (!inherits(x, "hsi")) {
-    stop("Input must be an hsi array object")
-  }
-
-  # Get wavelength values from dimnames
-  wl_values <- as.numeric(dimnames(x)[[3]])
-  
-  # Find indices for the wavelength range
-  wl_indices <- which(wl_values >= wl_min & wl_values <= wl_max)
-  
-  if (length(wl_indices) == 0) {
-    stop(paste("No wavelengths found in range", wl_min, "-", wl_max))
-  }
-
-  # Use subset_hsi to perform the actual subsetting
-  subset_hsi(x, wl_range = wl_indices)
-}
-
-#' Subset an hsi array by spatial region (ROI)
-#'
-#' @description
-#' Convenience function to subset an hsi array by spatial region of interest (ROI) 
-#' while preserving all attributes. This is useful for extracting specific regions 
-#' from the hyperspectral cube.
-#'
-#' @param x an hsi array object
-#' @param x_min minimum x coordinate (inclusive)
-#' @param x_max maximum x coordinate (inclusive)
-#' @param y_min minimum y coordinate (inclusive)
-#' @param y_max maximum y coordinate (inclusive)
-#' @return a subsetted hsi array with preserved attributes
-#' @export
-#' @examples
-#' \dontrun{
-#' # Assuming sample_cube is an hsi object
-#' roi_cube <- subset_by_roi(sample_cube, x_min = 10, x_max = 50, y_min = 20, y_max = 60)
-#' }
-#' @seealso subset_hsi
-subset_by_roi <- function(x, x_min, x_max, y_min, y_max) {
-  if (!inherits(x, "hsi")) {
-    stop("Input must be an hsi array object")
-  }
-
-  # Validate coordinates
-  if (x_min < 1 || x_max > dim(x)[1] || x_min > x_max) {
-    stop("Invalid x coordinates")
-  }
-  if (y_min < 1 || y_max > dim(x)[2] || y_min > y_max) {
-    stop("Invalid y coordinates")
-  }
-
-  # Use subset_hsi to perform the actual subsetting
-  subset_hsi(x, x_range = x_min:x_max, y_range = y_min:y_max)
-}
-
-#' Fast subsetting by logical mask
-#'
-#' @description
-#' Efficiently subsets an hsi array using a logical or numeric (0/1) mask while preserving all attributes.
-#' This function is optimized for memory efficiency by using the mask to extract 
-#' only the required elements.
-#'
-#' @param x an hsi array object
-#' @param mask a logical matrix or numeric matrix with 0/1 values of the same x,y dimensions as the hsi array
-#' @return a subsetted hsi array with preserved attributes
-#' @export
-#' @examples
-#' \dontrun{
-#' # Assuming sample_cube is an hsi object
-#' # Create a logical mask
-#' mask <- matrix(runif(100*100) > 0.5, nrow = 100, ncol = 100)
-#' masked_cube <- subset_by_mask(sample_cube, mask)
-#' 
-#' # Or use a numeric 0/1 mask
-#' mask_numeric <- matrix(rbinom(100*100, 1, 0.5), nrow = 100, ncol = 100)
-#' masked_cube <- subset_by_mask(sample_cube, mask_numeric)
-#' }
-#' @seealso subset_hsi
-subset_by_mask <- function(x, mask) {
-  if (!inherits(x, "hsi")) {
-    stop("Input must be an hsi array object")
-  }
-
-  if (!is.matrix(mask)) {
-    stop("mask must be a matrix")
-  }
-
-  # Convert numeric 0/1 matrix to logical
-  if (is.numeric(mask)) {
-    mask <- as.logical(mask)
-  }
-
-  if (!is.logical(mask)) {
-    stop("mask must be a logical matrix or numeric 0/1 matrix")
-  }
-
-  # Check dimensions
-  if (nrow(mask) != dim(x)[1] || ncol(mask) != dim(x)[2]) {
-    stop("mask dimensions must match x,y dimensions of the hsi array")
-  }
-
-  # Find indices where mask is TRUE
-  valid_indices <- which(mask, arr.ind = TRUE)
-  
-  if (nrow(valid_indices) == 0) {
-    stop("No TRUE values in mask - resulting subset would be empty")
-  }
-
-  # Extract unique x and y indices
-  x_indices <- unique(valid_indices[, "row"])
-  y_indices <- unique(valid_indices[, "col"])
-
-  # Use subset_hsi to perform the actual subsetting
-  subset_hsi(x, x_range = x_indices, y_range = y_indices)
-}
