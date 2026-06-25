@@ -8,11 +8,11 @@
 ## usethis namespace: end
 NULL
 
-#' High-Speed Image Recognition Package
+#' Hyper Spectral Imaging R Toolkit
 #'
 #' @description
-#' The hsir package provides lightweight, fast and memory-efficient functions for 
-#' image recognition and processing tasks, with a focus on hyperspectral imaging (HSI) data.
+#' The hsir package provides a lightweight, fast and memory-efficient R toolkit for 
+#' hyperspectral imaging (HSI) data analysis and processing.
 #'
 #' @details
 #' The package includes:

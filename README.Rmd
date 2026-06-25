@@ -1,10 +1,10 @@
 ---
-title: "hsir: High-Speed Image Recognition"
+title: "hsir: Hyper Spectral Imaging R Toolkit"
 output: 
   github_document:
     html_preview: false
 vignette: >
-  %\VignetteIndexEntry{hsir: High-Speed Image Recognition}
+  %\VignetteIndexEntry{hsir: Hyper Spectral Imaging R Toolkit}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 --- 
@@ -27,9 +27,9 @@ knitr::opts_chunk$set(
 [![License: proprietary](https://img.shields.io/badge/license-proprietary-blue.svg)](https://github.com/JannikVindeloev/hsir/blob/main/LICENSE)
 <!-- badges: end -->
 
-## High-Speed Image Recognition
+## Hyper Spectral Imaging R Toolkit
 
-**hsir** provides lightweight, fast and memory-efficient functions for image recognition and processing tasks. The package is optimized for performance using efficient data structures and algorithms.
+**hsir** (Hyper Spectral Imaging R Toolkit) provides a lightweight, fast and memory-efficient R toolkit for hyperspectral imaging data analysis and processing.
 
 ## Installation
 

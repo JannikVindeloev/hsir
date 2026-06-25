@@ -1,10 +1,10 @@
 Package: hsir
 Type: Package
-Title: High-Speed Image Recognition
+Title: Hyper Spectral Imaging R Toolkit
 Version: 0.0.0.9000
 Author: Jannik Vindeloev <jannik@example.com>
 Maintainer: Jannik Vindeloev <jannik@example.com>
-Description: Lightweight, fast and memory efficient image recognition utilities.
+Description: A lightweight, fast and memory-efficient R toolkit for hyperspectral imaging data analysis and processing. 
     Optimized for performance with efficient data structures and algorithms.
     Includes functions for reading and processing HSI (Hyperspectral Imaging) data
     in PAM format with optimized binary reading and thumbnail generation.
