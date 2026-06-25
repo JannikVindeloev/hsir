@@ -73,59 +73,13 @@ subset_hsi <- function(x, x_range = NULL, y_range = NULL, wl_range = NULL, drop 
     attr(subsetted, "header") <- attr(x, "header")
   }
 
-  if (!is.null(attr(x, "thumbnail"))) {
-    # Update thumbnail if it exists
-    original_thumb <- attr(x, "thumbnail")
-    thumb_dims <- dim(original_thumb)
-    
-    # Calculate new thumbnail dimensions based on subsetting
-    # Original thumbnail was downsampled by 4x
-    new_x_thumb <- ceiling(length(x_range) / 4)
-    new_y_thumb <- ceiling(length(y_range) / 4)
-    
-    # Only update thumbnail if the subset affects the spatial dimensions
-    if (length(x_range) < dim(original_thumb)[1] * 4 || 
-        length(y_range) < dim(original_thumb)[2] * 4) {
-      
-      # Create new thumbnail by subsetting the original thumbnail
-      # Map subsetted indices back to original indices
-      orig_x_indices <- x_range
-      orig_y_indices <- y_range
-      
-      # Find corresponding thumbnail indices
-      thumb_x_indices <- ceiling(orig_x_indices / 4)
-      thumb_y_indices <- ceiling(orig_y_indices / 4)
-      
-      # Ensure indices are within thumbnail bounds
-      thumb_x_indices <- pmin(thumb_x_indices, dim(original_thumb)[1])
-      thumb_y_indices <- pmin(thumb_y_indices, dim(original_thumb)[2])
-      
-      # Subset the thumbnail
-      new_thumb <- original_thumb[unique(thumb_x_indices), unique(thumb_y_indices), drop = FALSE]
-      
-      if (nrow(new_thumb) > 0 && ncol(new_thumb) > 0) {
-        attr(subsetted, "thumbnail") <- new_thumb
-      } else {
-        # If thumbnail becomes too small, remove it
-        attr(subsetted, "thumbnail") <- NULL
-      }
-    } else {
-      # Keep original thumbnail if spatial subsetting doesn't affect it
-      attr(subsetted, "thumbnail") <- original_thumb
-    }
-  }
-
-  if (!is.null(attr(x, "thumbnail_wavelength"))) {
-    attr(subsetted, "thumbnail_wavelength") <- attr(x, "thumbnail_wavelength")
-  }
-
   # Preserve class
   class(subsetted) <- class(x)
 
   # Update dimnames to reflect subsetting
   if (!is.null(dimnames(x))) {
     current_dimnames <- dimnames(x)
-    
+
     if (!is.null(x_range) && length(current_dimnames) >= 1) {
       current_dimnames[[1]] <- current_dimnames[[1]][x_range]
     }
@@ -135,7 +89,7 @@ subset_hsi <- function(x, x_range = NULL, y_range = NULL, wl_range = NULL, drop 
     if (!is.null(wl_range) && length(current_dimnames) >= 3) {
       current_dimnames[[3]] <- current_dimnames[[3]][wl_range]
     }
-    
+
     dimnames(subsetted) <- current_dimnames
   }
 
