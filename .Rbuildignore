@@ -1,0 +1,17 @@
+^\.Rproj$\n
+^\.Rhistory$\n
+^\.RData$\n
+^\.Ruser$\n
+^_R_Check_\n
+^\.DS_Store$\n
+^\.git$\n
+^\.github$\n
+^LICENSE\.md$\n
+^README\.Rmd$\n
+^_pkgdown\.yml$\n
+^appveyor\.yml$\n
+^\.travis\.yml$\n
+^cran-comments\.md$\n
+^revdep$\n
+^CODE_OF_CONDUCT\.md$\n
+^CONTRIBUTING\.md$\n

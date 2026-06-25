@@ -1,0 +1,72 @@
+---
+title: "hsir: High-Speed Image Recognition"
+output: 
+  github_document:
+    html_preview: false
+vignette: >
+  %\VignetteIndexEntry{hsir: High-Speed Image Recognition}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+--- 
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  echo = TRUE
+)
+```
+
+# hsir <img src="man/figures/logo.png" align="right" height="139"/>
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/JannikVindeloev/hsir/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JannikVindeloev/hsir/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://github.com/JannikVindeloev/hsir/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/JannikVindeloev/hsir/actions/workflows/test-coverage.yaml)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![License: proprietary](https://img.shields.io/badge/license-proprietary-blue.svg)](https://github.com/JannikVindeloev/hsir/blob/main/LICENSE)
+<!-- badges: end -->
+
+## High-Speed Image Recognition
+
+**hsir** provides lightweight, fast and memory-efficient functions for image recognition and processing tasks. The package is optimized for performance using efficient data structures and algorithms.
+
+## Installation
+
+You can install the development version of hsir from GitHub:
+
+```r
+# install.packages("devtools")
+devtools::install_github("JannikVindeloev/hsir")
+```
+
+## Usage
+
+```{r, example}
+library(hsir)
+
+# Check if all required packages are available
+check_packages()
+
+# Create an optimized data structure for image data
+img_data <- matrix(1:100, ncol = 10)
+img_dt <- create_image_dt(img_data)
+head(img_dt)
+
+# Perform fast matrix operations
+mat <- matrix(1:100, ncol = 10)
+fast_matrix_ops(mat, "mean")
+```
+
+## Performance
+
+The package is designed for high performance:
+
+- Uses `data.table` for fast data manipulation
+- Leverages `matrixStats` for optimized matrix operations
+- Minimizes memory allocation and copying
+- Follows best practices for R package performance
+
+## License
+
+This package is licensed under a proprietary license. See the [LICENSE](LICENSE) file for details.

@@ -1,0 +1,184 @@
+---
+title: "Getting Started with hsir"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Getting Started with hsir}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+--- 
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "figures/",
+  echo = TRUE
+)
+```
+
+# Getting Started with hsir
+
+The **hsir** package provides lightweight, fast and memory-efficient functions for image recognition and processing tasks. This vignette will guide you through the main features and usage patterns.
+
+## Installation
+
+```r
+# Install from GitHub
+devtools::install_github("JannikVindeloev/hsir")
+
+# Load the package
+library(hsir)
+```
+
+## Package Overview
+
+The hsir package is designed with the following principles:
+
+1. **Memory Efficiency**: Uses optimized data structures like `data.table`
+2. **Speed**: Leverages fast matrix operations from `matrixStats` and `fastmatrix`
+3. **Tidyverse Compatibility**: Follows tidyverse conventions for consistent API
+4. **Comprehensive**: Includes utilities for image data manipulation and processing
+
+## Core Functions
+
+### Package Availability Check
+
+Before using the package, you can check if all required dependencies are available:
+
+```{r, check-packages}
+# Check if all required packages are available
+check_packages()
+```
+
+### Image Data Structures
+
+The `create_image_dt()` function creates an optimized data structure for storing image data:
+
+```{r, image-dt}
+# Create sample image data
+img_data <- matrix(1:100, ncol = 10)
+
+# Convert to optimized data.table
+img_dt <- create_image_dt(img_data)
+
+# View the structure
+str(img_dt)
+head(img_dt)
+```
+
+For multi-dimensional arrays (e.g., RGB images):
+
+```{r, image-dt-array}
+# Create 3D array (e.g., RGB image)
+rgb_data <- array(1:24, dim = c(2, 3, 4))
+
+# Convert to optimized data.table
+rgb_dt <- create_image_dt(rgb_data)
+
+# View the structure
+str(rgb_dt)
+head(rgb_dt)
+```
+
+### Fast Matrix Operations
+
+The `fast_matrix_ops()` function performs optimized matrix operations for image processing:
+
+```{r, matrix-ops}
+# Create sample matrix
+mat <- matrix(1:100, ncol = 10)
+
+# Calculate row means
+row_means <- fast_matrix_ops(mat, "mean")
+row_means
+
+# Calculate column medians
+col_medians <- fast_matrix_ops(t(mat), "median")
+col_medians
+
+# All available operations
+operations <- c("mean", "median", "sum", "min", "max")
+results <- lapply(operations, function(op) fast_matrix_ops(mat, op))
+names(results) <- operations
+results
+```
+
+### Handling NA Values
+
+The functions are designed to handle NA values efficiently:
+
+```{r, na-handling}
+# Create matrix with NA values
+mat_na <- matrix(c(1:9, NA), ncol = 2)
+mat_na
+
+# Calculate means ignoring NA values
+fast_matrix_ops(mat_na, "mean", na.rm = TRUE)
+
+# Calculate means including NA values
+fast_matrix_ops(mat_na, "mean", na.rm = FALSE)
+```
+
+## Performance Considerations
+
+The hsir package is optimized for performance:
+
+1. **Memory Usage**: Uses data.table which is more memory efficient than data.frame
+2. **Speed**: Leverages compiled C/C++ code from matrixStats and fastmatrix
+3. **Vectorization**: Uses vectorized operations where possible
+4. **Minimal Copying**: Avoids unnecessary data copying
+
+## Best Practices
+
+1. **Use data.table**: For large datasets, always use data.table for memory efficiency
+2. **Matrix Operations**: Use the provided matrix operations instead of base R functions
+3. **Avoid Loops**: Use vectorized operations or apply functions instead of loops
+4. **Memory Management**: Be mindful of memory usage with large images
+
+## Example Workflow
+
+Here's a complete example workflow for processing image data:
+
+```{r, workflow}
+# Load required packages
+library(hsir)
+library(data.table)
+
+# Simulate image data (100x100 pixels)
+set.seed(123)
+image_data <- matrix(rnorm(10000), ncol = 100)
+
+# Convert to optimized data structure
+image_dt <- create_image_dt(image_data)
+
+# Calculate statistics for each row (pixel row)
+row_stats <- data.table(
+  mean = fast_matrix_ops(image_data, "mean"),
+  median = fast_matrix_ops(image_data, "median"),
+  min = fast_matrix_ops(image_data, "min"),
+  max = fast_matrix_ops(image_data, "max"),
+  sum = fast_matrix_ops(image_data, "sum")
+)
+
+# View the results
+head(row_stats)
+
+# Calculate overall statistics
+overall_stats <- list(
+  mean = mean(image_data, na.rm = TRUE),
+  sd = sd(image_data, na.rm = TRUE),
+  min = min(image_data, na.rm = TRUE),
+  max = max(image_data, na.rm = TRUE)
+)
+
+overall_stats
+```
+
+## Conclusion
+
+The hsir package provides a comprehensive set of tools for efficient image processing in R. By leveraging optimized data structures and algorithms, it offers significant performance improvements over traditional approaches.
+
+For more information, see the package documentation (`?hsir`) and the README file.

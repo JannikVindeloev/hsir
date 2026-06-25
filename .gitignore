@@ -1,0 +1,48 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Example code from vignettes and demos
+*_files/
+*_cache/
+
+# Output files from R Markdown
+*.md
+*.html
+*.pdf
+*.docx
+
+# RStudio files
+.Rproj.user/
+
+# Build files
+.Rcheck/
+
+# Test files
+.coverage/
+
+# Installation files
+*.tar.gz
+*.zip
+
+# Data files
+*.RData
+*.Rds
+
+# macOS metadata
+.DS_Store
+
+# IDE specific files
+.idea/
+.vscode/
+
+# Environment variables
+.env
+.Renviron
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log
