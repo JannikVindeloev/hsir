@@ -157,7 +157,7 @@ as_dt <- function(x, ...) {
   storage.mode(intensity_values) <- "integer"
   
   # Create data.table efficiently
-  dt <- data.table(
+  dt <- data.table::data.table(
     x = x_indices,
     y = y_indices,
     wl = as.integer(wl_indices),
