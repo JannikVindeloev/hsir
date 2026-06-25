@@ -8,13 +8,19 @@ Summary method for hsi objects
 
 "DESCRIPTION"
 Custom summary method for hsi array objects that provides statistical overview.
+For memory efficiency, this method uses subsampling (every 4th x and y, every 10th wavelength)
+to compute statistics on large HSI cubes.
 
 "USAGE"
-\method{summary}{hsi}(object, ...)
+\method{summary}{hsi}(object, ..., subsample = TRUE, x_step = 4, y_step = 4, wl_step = 10)
 
 "ARGUMENTS"
 \item{object}{an hsi array object}
 \item{...}{additional arguments}
+\item{subsample}{logical indicating whether to use subsampling for large arrays (default: TRUE)}
+\item{x_step}{step size for x dimension subsampling (default: 4)}
+\item{y_step}{step size for y dimension subsampling (default: 4)}
+\item{wl_step}{step size for wavelength dimension subsampling (default: 10)}
 
 "VALUE"
 A list containing summary statistics
@@ -23,4 +29,10 @@ A list containing summary statistics
 \dontrun{
 # Assuming sample_cube is an hsi object
 summary(sample_cube)
+
+# Disable subsampling for small arrays
+summary(sample_cube, subsample = FALSE)
+
+# Custom subsampling steps
+summary(sample_cube, x_step = 2, y_step = 2, wl_step = 5)
 }

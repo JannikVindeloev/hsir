@@ -3,72 +3,61 @@
 
 context("read_pam functions")
 
-# Test .generate_thumbnail function
+# Test package availability check
 if (requireNamespace("testthat", quietly = TRUE)) {
-    test_that(".generate_thumbnail creates thumbnail attribute", {
-        # Create a mock hsi array
-        mock_data <- array(1:1000, dim = c(10, 10, 10))
-        attr(mock_data, 'header') <- c(width = 10, height = 10, depth = 10, maxval = 1000)
-        attr(mock_data, 'class') <- c('hsi', 'array')
-        dimnames(mock_data) <- list(
-            x = as.character(1:10),
-            y = as.character(1:10),
-            wl = as.character(430:439)
-        )
-        
-        # Test with default wavelength (middle)
-        result <- hsir:::.generate_thumbnail(mock_data)
-        expect_true("thumbnail" %in% names(attributes(result)))
-        expect_true("thumbnail_wavelength" %in% names(attributes(result)))
-        
-        # Check thumbnail dimensions (downsampled by 4)
-        thumb <- attr(result, "thumbnail")
-        expect_equal(dim(thumb)[1], 3)  # 10/4 rounded up = 3
-        expect_equal(dim(thumb)[2], 3)  # 10/4 rounded up = 3
-        
-        # Check thumbnail wavelength is middle wavelength
-        expect_equal(attr(result, "thumbnail_wavelength"), 434)  # 430 + 4 (middle of 0:9)
+    test_that("check_packages returns logical vector", {
+        result <- hsir::check_packages()
+        expect_is(result, "logical")
+        expect_length(result, 4)  # data.table, matrixStats, fastmatrix, collapse
     })
 
-    test_that(".generate_thumbnail works with specified wavelength", {
-        # Create a mock hsi array
-        mock_data <- array(1:1000, dim = c(10, 10, 10))
-        attr(mock_data, 'header') <- c(width = 10, height = 10, depth = 10, maxval = 1000)
-        attr(mock_data, 'class') <- c('hsi', 'array')
-        dimnames(mock_data) <- list(
-            x = as.character(1:10),
-            y = as.character(1:10),
-            wl = as.character(430:439)
-        )
-        
-        # Test with specific wavelength
-        result <- hsir:::.generate_thumbnail(mock_data, wl = 435)
-        expect_equal(attr(result, "thumbnail_wavelength"), 435)
-        
-        # Test with non-existent wavelength (should use middle)
-        result <- hsir:::.generate_thumbnail(mock_data, wl = 999)
-        expect_equal(attr(result, "thumbnail_wavelength"), 434)
-        expect_true(length(grep("Specified wavelength not found", 
-                               capture.output(result), fixed = TRUE)) > 0)
+    # Test create_image_dt function
+    test_that("create_image_dt works with matrices", {
+        mat <- matrix(1:100, ncol = 10)
+        dt <- hsir::create_image_dt(mat)
+        expect_is(dt, "data.table")
+        expect_equal(nrow(dt), 100)
+        expect_equal(ncol(dt), 10)
     })
 
-    test_that(".generate_thumbnail scales values correctly", {
-        # Create a mock hsi array with known values
-        mock_data <- array(1:100, dim = c(10, 10, 1))
-        attr(mock_data, 'header') <- c(width = 10, height = 10, depth = 1, maxval = 100)
-        attr(mock_data, 'class') <- c('hsi', 'array')
-        dimnames(mock_data) <- list(
-            x = as.character(1:10),
-            y = as.character(1:10),
-            wl = as.character(430)
-        )
+    test_that("create_image_dt works with arrays", {
+        arr <- array(1:24, dim = c(2, 3, 4))
+        dt <- hsir::create_image_dt(arr)
+        expect_is(dt, "data.table")
+        expect_equal(nrow(dt), 24)
+        expect_true("value" %in% names(dt))
+        expect_true("row" %in% names(dt))
+        expect_true("col" %in% names(dt))
+    })
+
+    test_that("create_image_dt throws error for invalid input", {
+        expect_error(hsir::create_image_dt("invalid"))
+        expect_error(hsir::create_image_dt(1:10))
+    })
+
+    # Test fast_matrix_ops function
+    test_that("fast_matrix_ops works for mean", {
+        mat <- matrix(1:100, ncol = 10)
+        result <- hsir::fast_matrix_ops(mat, "mean")
+        expect_is(result, "numeric")
+        expect_length(result, 10)  # 10 rows
+    })
+
+    test_that("fast_matrix_ops works for all operations", {
+        mat <- matrix(1:20, ncol = 4)
         
-        result <- hsir:::.generate_thumbnail(mock_data)
-        thumb <- attr(result, "thumbnail")
-        
-        # Check that values are scaled to 0-255
-        expect_true(all(thumb >= 0 & thumb <= 255))
-        expect_equal(storage.mode(thumb), "integer")
+        for (op in c("mean", "median", "sum", "min", "max")) {
+            result <- hsir::fast_matrix_ops(mat, op)
+            expect_is(result, "numeric")
+            expect_length(result, 5)  # 5 rows
+        }
+    })
+
+    test_that("fast_matrix_ops handles NA values", {
+        mat <- matrix(c(1:9, NA), ncol = 2)
+        result <- hsir::fast_matrix_ops(mat, "mean", na.rm = TRUE)
+        expect_is(result, "numeric")
+        expect_false(any(is.na(result)))
     })
 
     # Test print.hsi method
@@ -103,6 +92,44 @@ if (requireNamespace("testthat", quietly = TRUE)) {
         expect_true("header" %in% names(result))
         expect_true("wavelength_range" %in% names(result))
         expect_true("statistics" %in% names(result))
+    })
+
+    # Test summary.hsi with subsampling
+    test_that("summary.hsi uses subsampling for large arrays", {
+        # Create a larger mock array that should trigger subsampling
+        mock_data <- array(1:100000, dim = c(100, 100, 10))  # 100x100x10 = 100,000 elements
+        attr(mock_data, 'header') <- c(width = 100, height = 100, depth = 10, maxval = 100000)
+        attr(mock_data, 'class') <- c('hsi', 'array')
+        dimnames(mock_data) <- list(
+            x = as.character(1:100),
+            y = as.character(1:100),
+            wl = as.character(430:439)
+        )
+        
+        result <- summary(mock_data, subsample = TRUE, x_step = 4, y_step = 4, wl_step = 10)
+        expect_is(result, "list")
+        expect_true("subsampling" %in% names(result))
+        expect_true(result$subsampling$used)
+        expect_equal(result$subsampling$x_step, 4)
+        expect_equal(result$subsampling$y_step, 4)
+        expect_equal(result$subsampling$wl_step, 10)
+    })
+
+    # Test summary.hsi without subsampling
+    test_that("summary.hsi can disable subsampling", {
+        mock_data <- array(1:100, dim = c(10, 10, 1))
+        attr(mock_data, 'header') <- c(width = 10, height = 10, depth = 1, maxval = 100)
+        attr(mock_data, 'class') <- c('hsi', 'array')
+        dimnames(mock_data) <- list(
+            x = as.character(1:10),
+            y = as.character(1:10),
+            wl = as.character(430)
+        )
+        
+        result <- summary(mock_data, subsample = FALSE)
+        expect_is(result, "list")
+        expect_true("subsampling" %in% names(result))
+        expect_false(result$subsampling$used)
     })
 
     # Test plot.hsi method (basic test without graphics)

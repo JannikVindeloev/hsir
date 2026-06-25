@@ -172,13 +172,19 @@ print.hsi <- function(x, ...) {
 #'
 #' @description
 #' Custom summary method for hsi array objects that provides statistical overview.
+#' For memory efficiency, this method uses subsampling (every 4th x and y, every 10th wavelength)
+#' to compute statistics on large HSI cubes.
 #'
 #' @param object an hsi array object
 #' @param ... additional arguments
+#' @param subsample logical indicating whether to use subsampling for large arrays (default: TRUE)
+#' @param x_step step size for x dimension subsampling (default: 4)
+#' @param y_step step size for y dimension subsampling (default: 4)
+#' @param wl_step step size for wavelength dimension subsampling (default: 10)
 #' @return A list containing summary statistics
 #' @export
 #' @method summary hsi
-summary.hsi <- function(object, ...) {
+summary.hsi <- function(object, ..., subsample = TRUE, x_step = 4, y_step = 4, wl_step = 10) {
   if (!inherits(object, "hsi")) {
     stop("Object must be of class 'hsi'")
   }
@@ -186,6 +192,7 @@ summary.hsi <- function(object, ...) {
   header <- attr(object, "header")
   wl_values <- as.integer(dimnames(object)[[3]])
   
+  # Basic information
   result <- list(
     dimensions = dim(object),
     class = class(object),
@@ -200,14 +207,53 @@ summary.hsi <- function(object, ...) {
     result$thumbnail_wavelength <- attr(object, "thumbnail_wavelength")
   }
   
-  # Add basic statistics for each wavelength
-  result$statistics <- tapply(object, INDEX = dimnames(object)[[3]], 
-                            FUN = function(x) c(
-                              min = min(x, na.rm = TRUE),
-                              max = max(x, na.rm = TRUE),
-                              mean = mean(x, na.rm = TRUE),
-                              sd = sd(x, na.rm = TRUE)
-                            ))
+  # For statistics, use subsampling for memory efficiency on large arrays
+  if (subsample && prod(dim(object)) > 100000) {
+    # Use subset_hsi for efficient subsampling
+    x_indices <- seq(1, dim(object)[1], by = x_step)
+    y_indices <- seq(1, dim(object)[2], by = y_step)
+    wl_indices <- seq(1, dim(object)[3], by = wl_step)
+    
+    # Create subsampled version for statistics
+    subsampled <- subset_hsi(object, x_range = x_indices, y_range = y_indices, wl_range = wl_indices)
+    
+    # Compute statistics on subsampled data
+    result$statistics <- tapply(subsampled, INDEX = dimnames(subsampled)[[3]], 
+                                FUN = function(x) c(
+                                  min = min(x, na.rm = TRUE),
+                                  max = max(x, na.rm = TRUE),
+                                  mean = mean(x, na.rm = TRUE),
+                                  sd = sd(x, na.rm = TRUE),
+                                  median = median(x, na.rm = TRUE)
+                                ))
+    
+    # Add subsampling information
+    result$subsampling <- list(
+      used = TRUE,
+      x_step = x_step,
+      y_step = y_step,
+      wl_step = wl_step,
+      subsampled_dimensions = dim(subsampled),
+      original_dimensions = dim(object)
+    )
+    
+    # Add note about subsampling
+    result$note <- "Statistics computed on subsampled data for memory efficiency"
+    
+  } else {
+    # For smaller arrays, use full data
+    result$statistics <- tapply(object, INDEX = dimnames(object)[[3]], 
+                                FUN = function(x) c(
+                                  min = min(x, na.rm = TRUE),
+                                  max = max(x, na.rm = TRUE),
+                                  mean = mean(x, na.rm = TRUE),
+                                  sd = sd(x, na.rm = TRUE),
+                                  median = median(x, na.rm = TRUE)
+                                ))
+    
+    result$subsampling <- list(used = FALSE)
+    result$note <- "Statistics computed on full data"
+  }
   
   class(result) <- "summary.hsi"
   return(result)
