@@ -152,11 +152,30 @@ if (requireNamespace("testthat", quietly = TRUE)) {
     })
 
     # Test subset_by_mask
-    test_that("subset_by_mask works correctly", {
+    test_that("subset_by_mask works with logical mask", {
         mock <- create_mock_hsi(10, 10, 5)
         
-        # Create a mask
+        # Create a logical mask
         mask <- matrix(rep(c(TRUE, FALSE), each = 50), nrow = 10, ncol = 10)
+        
+        subsetted <- hsir::subset_by_mask(mock, mask)
+        
+        # Check that it's still an hsi object
+        expect_true(inherits(subsetted, "hsi"))
+        
+        # Check that dimensions are reduced
+        expect_lt(dim(subsetted)[1], 10)
+        expect_lt(dim(subsetted)[2], 10)
+        
+        # Check that attributes are preserved
+        expect_true(!is.null(attr(subsetted, "header")))
+    })
+
+    test_that("subset_by_mask works with numeric 0/1 mask", {
+        mock <- create_mock_hsi(10, 10, 5)
+        
+        # Create a numeric 0/1 mask
+        mask <- matrix(rbinom(100, 1, 0.5), nrow = 10, ncol = 10)
         
         subsetted <- hsir::subset_by_mask(mock, mask)
         
@@ -178,6 +197,7 @@ if (requireNamespace("testthat", quietly = TRUE)) {
         expect_error(hsir::subset_by_mask(mock, "not_a_mask"))
         expect_error(hsir::subset_by_mask(mock, matrix(1:100, 10, 10)))
         expect_error(hsir::subset_by_mask(mock, matrix(TRUE, 5, 5)))
+        expect_error(hsir::subset_by_mask(mock, matrix("a", 10, 10)))
     })
 
     # Test memory efficiency
@@ -208,6 +228,20 @@ if (requireNamespace("testthat", quietly = TRUE)) {
         
         # Check that thumbnail wavelength is preserved
         expect_equal(attr(subsetted, "thumbnail_wavelength"), 432)
+    })
+
+    # Test that the original error case now works
+    test_that("subset_by_mask works with rbinom-generated mask", {
+        mock <- create_mock_hsi(10, 10, 5)
+        
+        # This was the original failing case - should now work
+        mask <- matrix(rbinom(100, 1, 0.5), nrow = 10, ncol = 10)
+        
+        # This should not throw an error anymore
+        expect_silent(subsetted <- hsir::subset_by_mask(mock, mask))
+        
+        # Check that it returns a valid hsi object
+        expect_true(inherits(subsetted, "hsi"))
     })
 
 } else {

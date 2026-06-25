@@ -227,20 +227,24 @@ subset_by_roi <- function(x, x_min, x_max, y_min, y_max) {
 #' Fast subsetting by logical mask
 #'
 #' @description
-#' Efficiently subsets an hsi array using a logical mask while preserving all attributes.
+#' Efficiently subsets an hsi array using a logical or numeric (0/1) mask while preserving all attributes.
 #' This function is optimized for memory efficiency by using the mask to extract 
 #' only the required elements.
 #'
 #' @param x an hsi array object
-#' @param mask a logical matrix of the same x,y dimensions as the hsi array
+#' @param mask a logical matrix or numeric matrix with 0/1 values of the same x,y dimensions as the hsi array
 #' @return a subsetted hsi array with preserved attributes
 #' @export
 #' @examples
 #' \dontrun{
 #' # Assuming sample_cube is an hsi object
-#' # Create a mask (e.g., based on some condition)
-#' mask <- matrix(rbinom(100*100, 1, 0.5), nrow = 100, ncol = 100)
+#' # Create a logical mask
+#' mask <- matrix(runif(100*100) > 0.5, nrow = 100, ncol = 100)
 #' masked_cube <- subset_by_mask(sample_cube, mask)
+#' 
+#' # Or use a numeric 0/1 mask
+#' mask_numeric <- matrix(rbinom(100*100, 1, 0.5), nrow = 100, ncol = 100)
+#' masked_cube <- subset_by_mask(sample_cube, mask_numeric)
 #' }
 #' @seealso subset_hsi
 subset_by_mask <- function(x, mask) {
@@ -248,8 +252,17 @@ subset_by_mask <- function(x, mask) {
     stop("Input must be an hsi array object")
   }
 
-  if (!is.matrix(mask) || !is.logical(mask)) {
-    stop("mask must be a logical matrix")
+  if (!is.matrix(mask)) {
+    stop("mask must be a matrix")
+  }
+
+  # Convert numeric 0/1 matrix to logical
+  if (is.numeric(mask)) {
+    mask <- as.logical(mask)
+  }
+
+  if (!is.logical(mask)) {
+    stop("mask must be a logical matrix or numeric 0/1 matrix")
   }
 
   # Check dimensions

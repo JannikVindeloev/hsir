@@ -7,7 +7,7 @@ subset_by_mask
 Fast subsetting by logical mask
 
 "DESCRIPTION"
-Efficiently subsets an hsi array using a logical mask while preserving all attributes.
+Efficiently subsets an hsi array using a logical or numeric (0/1) mask while preserving all attributes.
 This function is optimized for memory efficiency by using the mask to extract 
 only the required elements.
 
@@ -16,7 +16,7 @@ subset_by_mask(x, mask)
 
 "ARGUMENTS"
 \item{x}{an hsi array object}
-\item{mask}{a logical matrix of the same x,y dimensions as the hsi array}
+\item{mask}{a logical matrix or numeric matrix with 0/1 values of the same x,y dimensions as the hsi array}
 
 "VALUE"
 a subsetted hsi array with preserved attributes
@@ -24,9 +24,13 @@ a subsetted hsi array with preserved attributes
 "EXAMPLES"
 \dontrun{
 # Assuming sample_cube is an hsi object
-# Create a mask (e.g., based on some condition)
-mask <- matrix(rbinom(100*100, 1, 0.5), nrow = 100, ncol = 100)
+# Create a logical mask
+mask <- matrix(runif(100*100) > 0.5, nrow = 100, ncol = 100)
 masked_cube <- subset_by_mask(sample_cube, mask)
+
+# Or use a numeric 0/1 mask
+mask_numeric <- matrix(rbinom(100*100, 1, 0.5), nrow = 100, ncol = 100)
+masked_cube <- subset_by_mask(sample_cube, mask_numeric)
 }
 
 "SEE ALSO"
