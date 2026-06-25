@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Reads a binary PAM (Portable Arbitrary Map) file and returns the image data as a 3-D array 
-#' (width × height × depth). The function uses optimized binary reading and optionally 
+#' (width \u00d7 height \u00d7 depth). The function uses optimized binary reading and optionally 
 #' generates a downsampled grayscale thumbnail from a single wavelength slice for ROI selection.
 #'
 #' @param file_path the path for the file
@@ -42,7 +42,7 @@ read_pam <- function(file_path, min_wl = 430, thumbnail = TRUE, wl = NULL) {
 
   # Parse header using base R (optimized with pre-compiled regex)
   get_val <- function(key) {
-    pattern <- paste0("^", key, "\\s+")
+    pattern <- paste0("^\", key, "\\s+")
     x <- grep(pattern, header, value = TRUE)
     if (!length(x)) stop("Missing PAM header field: ", key)
     as.integer(sub(pattern, "", x[1]))
@@ -92,7 +92,7 @@ read_pam <- function(file_path, min_wl = 430, thumbnail = TRUE, wl = NULL) {
 #'
 #' @description
 #' Generates a downsampled grayscale thumbnail from a single wavelength slice of an hsi array.
-#' The thumbnail is created by sampling every fourth pixel in both x and y dimensions for optimal performance.
+#' Uses subset_hsi for efficient extraction and downsampling.
 #'
 #' @param a an `hsi` array
 #' @param wl wavelength for the thumbnail (default: middle wavelength)
@@ -114,14 +114,20 @@ read_pam <- function(file_path, min_wl = 430, thumbnail = TRUE, wl = NULL) {
     wl <- wl_values[wl_idx]
   }
 
-  # Extract the wavelength slice as a matrix and scale to 0-255 (storage mode integer)
-  slice <- a[,, wl_idx, drop = TRUE]
+  # Use subset_hsi to extract the specific wavelength slice
+  slice_array <- subset_hsi(a, wl_range = wl_idx)
+  
+  # Extract the 2D slice from the 3D array
+  slice <- slice_array[,, 1, drop = TRUE]
+  
+  # Scale to 0-255 and convert to integer storage mode
   slice_scaled <- (slice / maxval) * 255
   storage.mode(slice_scaled) <- 'integer'
 
   # Downsample by taking every fourth pixel in x and y for better performance
-  downsampled <- slice_scaled[seq(1, nrow(slice_scaled), by = 4),
-                              seq(1, ncol(slice_scaled), by = 4)]
+  x_indices <- seq(1, nrow(slice_scaled), by = 4)
+  y_indices <- seq(1, ncol(slice_scaled), by = 4)
+  downsampled <- slice_scaled[x_indices, y_indices, drop = FALSE]
 
   # Store the downsampled slice directly as the thumbnail
   attr(a, 'thumbnail') <- downsampled
@@ -143,7 +149,7 @@ read_pam <- function(file_path, min_wl = 430, thumbnail = TRUE, wl = NULL) {
 print.hsi <- function(x, ...) {
   cat("HSI Array Object\n")
   cat("================\n")
-  cat("Dimensions:", paste(dim(x), collapse = " × "), "\n")
+  cat("Dimensions:", paste(dim(x), collapse = " \u00d7 "), "\n")
   cat("Class:", paste(class(x), collapse = ", "), "\n")
   
   if (!missing(x) && inherits(x, "array") && "header" %in% names(attributes(x))) {
@@ -158,7 +164,7 @@ print.hsi <- function(x, ...) {
   if ("thumbnail" %in% names(attributes(x))) {
     thumb <- attr(x, "thumbnail")
     cat("\nThumbnail Information:\n")
-    cat("  Dimensions:", paste(dim(thumb), collapse = " × "), "\n")
+    cat("  Dimensions:", paste(dim(thumb), collapse = " \u00d7 "), "\n")
     cat("  Wavelength:", attr(x, "thumbnail_wavelength"), "\n")
   }
   
