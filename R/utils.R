@@ -132,7 +132,7 @@ fast_matrix_ops <- function(x, operation = c("mean", "median", "sum", "min", "ma
 #' \dontrun{
 #' # Assuming sample_cube is an hsi object
 #' dt_cube <- as_dt(sample_cube)
-#' head(dt)
+#' head(dt_cube)
 #' }
 as_dt <- function(x, ...) {
   if (!inherits(x, "hsi")) {
